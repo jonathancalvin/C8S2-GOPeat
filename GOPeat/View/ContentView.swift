@@ -13,7 +13,6 @@ struct ContentView: View {
     @Query var canteens: [Canteen]
     @Query var tenants: [Tenant]
     @State private var showSheet = true
-    @State private var searchTerm = ""
     
     private func insertInitialData() {
         // Create Canteen
@@ -172,7 +171,7 @@ struct ContentView: View {
             showInsertedData()
         }
         .sheet(isPresented: $showSheet) {
-            ModalSearchComponent(searchTerm: $searchTerm, tenants: tenants)
+            ModalSearchComponent(tenantSearchViewModel: TenantSearchViewModel(tenants: tenants))
         }
     }
 }

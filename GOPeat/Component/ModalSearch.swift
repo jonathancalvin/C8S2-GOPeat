@@ -1,28 +1,35 @@
 import SwiftUI
 import SwiftData
 
-struct ModalSearchComponent: View {
-    @Binding var searchTerm: String
-    @FocusState var isTextFieldFocused: Bool
-    @State private var sheetHeight: PresentationDetent = .fraction(0.1)
-    @State private var selectedCategories: [String] = []
-    private let maxHeight: PresentationDetent = .fraction(1)
-    private let categories: [String] = ["Halal", "Non-Halal"] + FoodCategory.allCases.map{ $0.rawValue }
+class TenantSearchViewModel: ObservableObject{
+    @Published var searchTerm: String = ""
+    @Published var sheeHeight: PresentationDetent = .fraction(0.1)
+    @Published var selectedCategories: [String] = []
+    @Published var filteredTenants: [Tenant] = []
+    
     let tenants: [Tenant]
-    @State private var filteredTenant: [Tenant] = []
-    private func doSearch(searchTerm: String) -> some View{
+    let categories: [String] = ["Halal", "Non-Halal"] + FoodCategory.allCases.map{ $0.rawValue }
+    
+    init(tenants: [Tenant]) {
+        self.tenants = tenants
+        self.filteredTenants = tenants
+    }
+    func doSearch(searchTerm: String) -> [Tenant] {
         let loweredCaseString = searchTerm.lowercased()
-        let result = filteredTenant.filter { tenant in
-            tenant.name.lowercased()
-                .contains(loweredCaseString) || tenant.foods.contains { food in
+        let foodCategories = selectedCategories.filter{$0 != "Halal" && $0 != "Non-Halal"}
+        return filteredTenants.filter { tenant in
+            //Search by tenant name
+            tenant.name.lowercased().contains(loweredCaseString) ||
+            //Search by food name while considering filters
+            tenant.foods.filter{food in
+                Set(foodCategories).isSubset(of: Set(food.categories.map {$0.rawValue}))
+            }.contains { food in
                 food.name.lowercased().contains(loweredCaseString)
             }
         }
-        return showTenant(tenants: result)
     }
     
-    private func updateFilteredTenant() {
-        
+     func updateFilteredTenant() {
         //Filter Tenant by Halal / Non-Halal
         let containsHalal = selectedCategories.contains("Halal")
         let containsNonHalal = selectedCategories.contains("Non-Halal")
@@ -39,16 +46,29 @@ struct ModalSearchComponent: View {
         let foodCategories = selectedCategories.filter{$0 != "Halal" && $0 != "Non-Halal"}
         
         if foodCategories.isEmpty {
-            filteredTenant = halalTenants
+            filteredTenants = halalTenants
         } else {
             //Filter by foodCategories
-            filteredTenant = halalTenants.filter{ tenant in
+            filteredTenants = halalTenants.filter{ tenant in
                 return tenant.foods.contains { food in
                     Set(foodCategories).isSubset(of: Set(food.categories.map {$0.rawValue}))
                 }
             }
         }
     }
+    
+    func onClose() {
+        sheeHeight = .fraction(0.1)
+        searchTerm = ""
+        selectedCategories = []
+        filteredTenants = tenants
+    }
+}
+
+struct ModalSearchComponent: View {
+    @FocusState var isTextFieldFocused: Bool
+    private let maxHeight: PresentationDetent = .fraction(1)
+    @ObservedObject var tenantSearchViewModel: TenantSearchViewModel
     
     private func showTenant(tenants: [Tenant]) -> some View {
         VStack{
@@ -70,63 +90,39 @@ struct ModalSearchComponent: View {
     
     var body: some View {
         VStack {
-            HStack (spacing: 0){
-                HStack(spacing: 5) {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(searchTerm.isEmpty ? .gray : .blue)
-
-                    TextField("What should I eat today?", text: $searchTerm)
-                        .focused($isTextFieldFocused)
-                        .textFieldStyle(.plain)
-                        .autocorrectionDisabled()
-                }
-                .padding(10)
-                .background(Color(.systemGray5))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .padding(.trailing, 10)
-                
-                if isTextFieldFocused{
-                    Button(action: {
-                        searchTerm = ""
-                        isTextFieldFocused = false
-                        sheetHeight = .fraction(0.1)
-                    }) {
-                        Text("Cancel")
-                    }
-                }
-            }.padding(.top, 10)
+            SearchBar(searchTerm: $tenantSearchViewModel.searchTerm, isTextFieldFocused: _isTextFieldFocused ,onCancel: tenantSearchViewModel.onClose)
             ScrollView(.vertical){
-                    Filter(categories: categories, selectedCategories: $selectedCategories)
-                    .onChange(of: selectedCategories) { _, _ in
-                    updateFilteredTenant()
+                    Filter(categories: tenantSearchViewModel.categories, selectedCategories: $tenantSearchViewModel.selectedCategories)
+                    .onChange(of: tenantSearchViewModel.selectedCategories) { _, _ in
+                        tenantSearchViewModel.updateFilteredTenant()
                 }
-                if (sheetHeight ==  .fraction(1) || sheetHeight ==  .fraction(0.7)) {
+                if (tenantSearchViewModel.sheeHeight ==  .fraction(1) || tenantSearchViewModel.sheeHeight ==  .fraction(0.7)) {
                     VStack {
-                        if searchTerm.isEmpty {
-                            showTenant(tenants: filteredTenant)
+                        if tenantSearchViewModel.searchTerm.isEmpty {
+                            showTenant(tenants: tenantSearchViewModel.filteredTenants)
                         } else {
-                            doSearch(searchTerm: searchTerm)
+                            showTenant(tenants: tenantSearchViewModel.doSearch(searchTerm: tenantSearchViewModel.searchTerm))
                         }
                     }
                 }
+
             }
         }
         .padding()
-        .presentationDetents([.fraction(0.1), .fraction(0.7), .fraction(1)], selection: $sheetHeight)
+        .presentationDetents([.fraction(0.1), .fraction(0.7), .fraction(1)], selection: $tenantSearchViewModel.sheeHeight)
         .interactiveDismissDisabled()
         .presentationBackgroundInteraction(.enabled(upThrough: maxHeight))
-        .onAppear(){
-            filteredTenant = tenants
-        }
         .onChange(of: isTextFieldFocused, initial: false) { _, newValue in
             withAnimation {
-                sheetHeight = newValue ? .fraction(0.7) : .fraction(0.1)
+                tenantSearchViewModel.sheeHeight = newValue ? .fraction(0.7) : .fraction(0.1)
             }
         }
-        .onChange(of: sheetHeight) { _, newValue in
+        .onChange(of: tenantSearchViewModel.sheeHeight) { _, newValue in
             if newValue == .fraction(0.1) {
                 isTextFieldFocused = false
+                tenantSearchViewModel.onClose()
             }
         }
+
     }
 }
