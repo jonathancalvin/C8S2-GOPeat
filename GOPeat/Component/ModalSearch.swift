@@ -6,6 +6,7 @@ class TenantSearchViewModel: ObservableObject{
     @Published var sheeHeight: PresentationDetent = .fraction(0.1)
     @Published var selectedCategories: [String] = []
     @Published var filteredTenants: [Tenant] = []
+    @Published var recentSearch: [String] = []
     
     let tenants: [Tenant]
     let categories: [String] = ["Halal", "Non-Halal"] + FoodCategory.allCases.map{ $0.rawValue }
@@ -29,7 +30,7 @@ class TenantSearchViewModel: ObservableObject{
         }
     }
     
-     func updateFilteredTenant() {
+    func updateFilteredTenant() {
         //Filter Tenant by Halal / Non-Halal
         let containsHalal = selectedCategories.contains("Halal")
         let containsNonHalal = selectedCategories.contains("Non-Halal")
@@ -56,7 +57,13 @@ class TenantSearchViewModel: ObservableObject{
             }
         }
     }
-    
+    func saveRecentSearch(searchTerm: String) {
+        recentSearch.removeAll { $0.lowercased() == searchTerm.lowercased() }
+        recentSearch.insert(searchTerm, at: 0)
+        if recentSearch.count > 5 {
+            recentSearch = Array(recentSearch.prefix(5))
+        }
+    }
     func onClose() {
         sheeHeight = .fraction(0.1)
         searchTerm = ""
@@ -71,7 +78,12 @@ struct ModalSearchComponent: View {
     @ObservedObject var tenantSearchViewModel: TenantSearchViewModel
     
     private func showTenant(tenants: [Tenant]) -> some View {
-        VStack{
+        VStack(alignment: .leading) {
+            Text("Tenants")
+                .font(.headline)
+                .fontWeight(.bold)
+                .padding(0)
+            Divider()
             ForEach(tenants) {tenant in
                 HStack{
                     Image(tenant.image)
@@ -88,24 +100,57 @@ struct ModalSearchComponent: View {
         }
     }
     
+    private func showRecentSearch() -> some View {
+        VStack(alignment: .leading) {
+            Text("Your Search History")
+                .font(.subheadline)
+                .fontWeight(.bold)
+                .padding(0)
+            Divider()
+            HStack{
+                ForEach(tenantSearchViewModel.recentSearch, id: \.self) { recent in
+                    Button {
+                        tenantSearchViewModel.searchTerm = recent
+                    } label: {
+                        Text(recent)
+                            .foregroundStyle(Color.primary)
+                            .font(.caption)
+                            .padding(10)
+                            .background(Color(.systemGray5))
+                            .clipShape(Capsule())
+                    }
+                    
+                }
+            }
+        }
+    }
+    
     var body: some View {
-        VStack {
-            SearchBar(searchTerm: $tenantSearchViewModel.searchTerm, isTextFieldFocused: _isTextFieldFocused ,onCancel: tenantSearchViewModel.onClose)
-            ScrollView(.vertical){
-                    Filter(categories: tenantSearchViewModel.categories, selectedCategories: $tenantSearchViewModel.selectedCategories)
+        VStack(alignment: .leading) {
+            SearchBar(searchTerm: $tenantSearchViewModel.searchTerm,
+                      isTextFieldFocused: _isTextFieldFocused,
+                      onCancel: tenantSearchViewModel.onClose,
+                      onSearch: {
+                        tenantSearchViewModel.saveRecentSearch(searchTerm: tenantSearchViewModel.searchTerm)
+                      })
+            if (tenantSearchViewModel.sheeHeight != .fraction(0.1)){
+                Filter(categories: tenantSearchViewModel.categories, selectedCategories: $tenantSearchViewModel.selectedCategories)
                     .onChange(of: tenantSearchViewModel.selectedCategories) { _, _ in
                         tenantSearchViewModel.updateFilteredTenant()
-                }
-                if (tenantSearchViewModel.sheeHeight ==  .fraction(1) || tenantSearchViewModel.sheeHeight ==  .fraction(0.7)) {
+                    }
+                ScrollView(.vertical){
+                    //Recent search (max 5)
+                    if !tenantSearchViewModel.recentSearch.isEmpty {
+                        showRecentSearch()
+                    }
                     VStack {
                         if tenantSearchViewModel.searchTerm.isEmpty {
                             showTenant(tenants: tenantSearchViewModel.filteredTenants)
                         } else {
                             showTenant(tenants: tenantSearchViewModel.doSearch(searchTerm: tenantSearchViewModel.searchTerm))
                         }
-                    }
+                    }.padding(.top, tenantSearchViewModel.recentSearch.isEmpty ? 0 : 10)
                 }
-
             }
         }
         .padding()
