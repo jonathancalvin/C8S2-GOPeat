@@ -7,6 +7,8 @@ class TenantSearchViewModel: ObservableObject{
     @Published var selectedCategories: [String] = []
     @Published var filteredTenants: [Tenant] = []
     @Published var recentSearch: [String] = []
+    @Published var maxPrice: Double = 100000
+    @Published var isOpenNow: Bool = false
     
     let tenants: [Tenant]
     let categories: [String] = ["Halal", "Non-Halal"] + FoodCategory.allCases.map{ $0.rawValue }
@@ -30,6 +32,17 @@ class TenantSearchViewModel: ObservableObject{
         }
     }
     
+    func isCurrentlyOpen(_ hours: String) -> Bool {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+        let now = timeFormatter.string(from: Date())
+        let hoursRange = hours.split(separator: "-")
+        guard hoursRange.count == 2 else { return false }
+        let start = String(hoursRange[0])
+        let end = String(hoursRange[1])
+        return now >= start && now <= end
+    }
+    
     func updateFilteredTenant() {
         //Filter Tenant by Halal / Non-Halal
         let containsHalal = selectedCategories.contains("Halal")
@@ -46,16 +59,25 @@ class TenantSearchViewModel: ObservableObject{
         
         let foodCategories = selectedCategories.filter{$0 != "Halal" && $0 != "Non-Halal"}
         
-        if foodCategories.isEmpty {
-            filteredTenants = halalTenants
-        } else {
-            //Filter by foodCategories
-            filteredTenants = halalTenants.filter{ tenant in
-                return tenant.foods.contains { food in
-                    Set(foodCategories).isSubset(of: Set(food.categories.map {$0.rawValue}))
-                }
-            }
+        filteredTenants = halalTenants.filter { tenant in
+            let withinPriceRange = tenant.priceRange.split(separator: "-").compactMap { Double($0.replacingOccurrences(of: ".", with: "")) }
+            let minPriceInRange = withinPriceRange.min() ?? 0
+            let isPriceValid = minPriceInRange <= maxPrice
+            let isOpen = !isOpenNow || isCurrentlyOpen(tenant.operationalHours)
+            return isPriceValid && isOpen && (foodCategories.isEmpty || tenant.foods.contains { food in
+                Set(foodCategories).isSubset(of: Set(food.categories.map { $0.rawValue }))
+            })
         }
+//        if foodCategories.isEmpty {
+//            filteredTenants = halalTenants
+//        } else {
+//            Filter by foodCategories
+//            filteredTenants = halalTenants.filter{ tenant in
+//                return tenant.foods.contains { food in
+//                    Set(foodCategories).isSubset(of: Set(food.categories.map {$0.rawValue}))
+//                }
+//            }
+//        }
     }
     func saveRecentSearch(searchTerm: String) {
         recentSearch.removeAll { $0.lowercased() == searchTerm.lowercased() }
@@ -134,8 +156,14 @@ struct ModalSearchComponent: View {
                         tenantSearchViewModel.saveRecentSearch(searchTerm: tenantSearchViewModel.searchTerm)
                       })
             if (tenantSearchViewModel.sheeHeight != .fraction(0.1)){
-                Filter(categories: tenantSearchViewModel.categories, selectedCategories: $tenantSearchViewModel.selectedCategories)
+                Filter(categories: tenantSearchViewModel.categories, selectedCategories: $tenantSearchViewModel.selectedCategories, maxPrice: $tenantSearchViewModel.maxPrice, isOpenNow: $tenantSearchViewModel.isOpenNow)
                     .onChange(of: tenantSearchViewModel.selectedCategories) { _, _ in
+                        tenantSearchViewModel.updateFilteredTenant()
+                    }
+                    .onChange(of: tenantSearchViewModel.maxPrice) { _, _ in
+                        tenantSearchViewModel.updateFilteredTenant()
+                    }
+                    .onChange(of: tenantSearchViewModel.isOpenNow) { _, _ in
                         tenantSearchViewModel.updateFilteredTenant()
                     }
                 ScrollView(.vertical){

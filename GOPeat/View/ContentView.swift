@@ -46,17 +46,17 @@ struct ContentView: View {
                image: "MamaDjempolGE",
                contactPerson: "08123456789",
                preorderInformation: true,
-                                 operationalHours: "09:00-14:00", isHalal: true, canteen: greenEatery)
+                                 operationalHours: "09:00-14:00", isHalal: true, canteen: greenEatery, priceRange: "16.000-25.000")
         let kasturi = Tenant(name: "Kasturi",
                image: "Kasturi",
                contactPerson: "08123456789",
                preorderInformation: true,
-                             operationalHours: "09:00-14:00", isHalal: true, canteen: greenEatery)
+                             operationalHours: "09:00-14:00", isHalal: true, canteen: greenEatery, priceRange: "13.000-20.000")
         let laDing = Tenant(name: "La Ding",
                image: "LaDing",
                contactPerson: "08123456789",
                preorderInformation: true,
-                            operationalHours: "09:00-14:00", isHalal: true, canteen: greenEatery)
+                            operationalHours: "09:00-14:00", isHalal: true, canteen: greenEatery, priceRange: "17.000-35.000")
         // TO DO - create tenant for each canteen (gOP6, gOP1, theBreeze)
         
         // Masukkan Tenant ke context
