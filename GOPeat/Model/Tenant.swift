@@ -19,8 +19,9 @@ class Tenant: Identifiable {
     var preorderInformation: Bool?
     var operationalHours: String
     var isHalal: Bool?
+    var priceRange: String
     @Relationship(deleteRule: .cascade) var foods: [Food] = []
-    init(name: String, image: String, contactPerson: String, preorderInformation:Bool?, operationalHours: String, isHalal: Bool?, canteen: Canteen?) {
+    init(name: String, image: String, contactPerson: String, preorderInformation:Bool?, operationalHours: String, isHalal: Bool?, canteen: Canteen?, priceRange: String) {
         self.name = name
         self.image = image
         self.contactPerson = contactPerson
@@ -28,5 +29,6 @@ class Tenant: Identifiable {
         self.operationalHours = operationalHours
         self.isHalal = isHalal
         self.canteen = canteen
+        self.priceRange = priceRange
     }
 }

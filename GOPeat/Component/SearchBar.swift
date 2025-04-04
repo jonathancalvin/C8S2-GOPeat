@@ -11,16 +11,22 @@ struct SearchBar: View {
     @Binding var searchTerm: String
     @FocusState var isTextFieldFocused: Bool
     var onCancel: () -> Void
+    var onSearch: () -> Void
     var body: some View {
         HStack (spacing: 0){
             HStack(spacing: 5) {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(searchTerm.isEmpty ? .gray : .blue)
                 
-                TextField("What should I eat today?", text: $searchTerm)
+                TextField("What would you eat today?", text: $searchTerm)
+                    .onSubmit {
+                        onSearch()
+                        isTextFieldFocused = true
+                    }
                     .focused($isTextFieldFocused)
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled()
+                    .submitLabel(.search)
             }
             .padding(10)
             .background(Color(.systemGray5))
