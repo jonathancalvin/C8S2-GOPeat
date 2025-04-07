@@ -10,11 +10,11 @@ struct Location: Identifiable, Equatable, Hashable {
     let description: String
     let hours: String
     let amenities: [String]
-    
+
     static func == (lhs: Location, rhs: Location) -> Bool {
         lhs.id == rhs.id
     }
-    
+
     // Add hash function for Hashable conformance
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
@@ -38,7 +38,7 @@ struct SearchModalView: View {
     @FocusState var isTextFieldFocused: Bool
     @State private var sheetHeight: PresentationDetent = .fraction(0.1)
     private let maxHeight: PresentationDetent = .fraction(1)
-    
+
     let locations: [Location]
     var onLocationSelected: (Location) -> Void
 
@@ -67,7 +67,7 @@ struct SearchModalView: View {
                         .background(Color(.systemGray5))
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                         .padding(.trailing, 10)
-                        
+
                         if isTextFieldFocused {
                             Button("Cancel") {
                                 searchTerm = ""
@@ -88,7 +88,8 @@ struct SearchModalView: View {
                                     HStack {
                                         Image(systemName: "mappin.circle.fill")
                                             .foregroundColor(locationColor(for: location.name))
-                                        
+                                            .font(.title3) // Dynamic size
+
                                         VStack(alignment: .leading) {
                                             Text(location.name)
                                                 .font(.subheadline)
@@ -98,7 +99,7 @@ struct SearchModalView: View {
                                                 .foregroundColor(.secondary)
                                                 .lineLimit(1)
                                         }
-                                        
+
                                         Spacer()
                                     }
                                     .padding(10)
@@ -139,6 +140,7 @@ struct ContentView: View {
     @State private var showDetail = false
     @State private var showSearchModal = true
     @State private var mapOffset: CGFloat = 0 // New offset state
+    @StateObject private var locationManager = LocationManager() // Add LocationManager
 
     private let locations: [Location] = [
         Location(
@@ -175,7 +177,7 @@ struct ContentView: View {
         withAnimation(.easeInOut(duration: 0.5)) {
             // Move the pin to the top 1/3 of the screen
             mapOffset = -UIScreen.main.bounds.height * 0.25
-            
+
             let region = MKCoordinateRegion(
                 center: coordinate,
                 span: MKCoordinateSpan(latitudeDelta: 0.001, longitudeDelta: 0.001)
@@ -196,15 +198,17 @@ struct ContentView: View {
         ZStack {
             // Map View with Offset
             Map(position: $camera) {
+                UserAnnotation()
+
                 ForEach(locations) { location in
                     Annotation(location.name, coordinate: location.coordinate) {
                         ZStack {
                             Circle()
                                 .fill(.white)
                                 .frame(width: 30, height: 30)
-                            
+
                             Image(systemName: "fork.knife.circle.fill")
-                                .font(.system(size: 24))
+                                .font(.system(size: 24)) // Dynamic size
                                 .foregroundStyle(locationColor(for: location.name))
                                 .scaleEffect(selectedLocation?.id == location.id ? 1.3 : 1.0)
                         }
@@ -220,22 +224,25 @@ struct ContentView: View {
             .padding(.top, mapOffset) // Apply the offset here
             .mapStyle(.standard)
             .mapControls {
-                MapUserLocationButton()
                 MapCompass()
                 MapScaleView()
             }
             .edgesIgnoringSafeArea(.all)
             .background(Color.clear) // Add this line
 
-            // Current Location Button
+            // Current Location Button (Moved to Top)
             VStack {
-                Spacer()
                 HStack {
                     Spacer()
                     Button(action: {
                         withAnimation {
-                            camera = .automatic
-                            mapOffset = 0 // Reset offset
+                            if let userLocation = locationManager.location {
+                                camera = .region(MKCoordinateRegion(center: userLocation.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)))
+                                mapOffset = 0 // Reset offset
+                            } else {
+                                camera = .automatic
+                                mapOffset = 0
+                            }
                         }
                     }) {
                         Image(systemName: "location.fill")
@@ -245,9 +252,11 @@ struct ContentView: View {
                             .shadow(radius: 5)
                     }
                     .padding(.trailing, 20)
-                    .padding(.bottom, 50)
+                    .padding(.top, 50) // Adjust top padding as needed
                 }
+                Spacer()
             }
+            .zIndex(1) // Ensure the button is above the map
         }
         .sheet(isPresented: $showDetail, onDismiss: {
             withAnimation(.easeInOut(duration: 0.3)) {
@@ -277,7 +286,7 @@ struct ContentView: View {
 struct LocationDetailView: View {
     let location: Location
     var dismissAction: () -> Void
-    
+
     var body: some View {
         NavigationView {
             ScrollView {
@@ -285,41 +294,41 @@ struct LocationDetailView: View {
                     // Header
                     HStack(alignment: .top) {
                         Image(systemName: "fork.knife.circle.fill")
-                            .foregroundStyle(.red)
-                            .font(.system(size: 36))
-                        
+                            .foregroundStyle(locationColor(for: location.name)) // Dynamic color
+                            .font(.largeTitle) // Dynamic size
+
                         VStack(alignment: .leading, spacing: 4) {
                             Text(location.name)
                                 .font(.title2)
                                 .bold()
-                            
+
                             Text(location.description)
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                     }
                     .padding(.bottom, 8)
-                    
+
                     Divider()
-                    
+
                     // Hours Section
                     VStack(alignment: .leading, spacing: 8) {
                         Text("OPERATING HOURS")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
+
                         Text(location.hours)
                             .font(.subheadline)
                     }
-                    
+
                     Divider()
-                    
+
                     // Amenities Section
                     VStack(alignment: .leading, spacing: 8) {
                         Text("AMENITIES")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
+
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))], spacing: 8) {
                             ForEach(location.amenities, id: \.self) { amenity in
                                 Label(amenity, systemImage: amenityIcon(for: amenity))
@@ -330,24 +339,24 @@ struct LocationDetailView: View {
                             }
                         }
                     }
-                    
+
                     // Map Preview
                     VStack(alignment: .leading, spacing: 8) {
                         Text("LOCATION")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
+
                         Map(initialPosition: .region(MKCoordinateRegion(
                             center: location.coordinate,
                             span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
                         ))) {
                             Annotation("", coordinate: location.coordinate) {
                                 Image(systemName: "mappin.circle.fill")
-                                    .font(.title)
-                                    .foregroundColor(.red)
+                                    .font(.title) // Dynamic size
+                                    .foregroundColor(locationColor(for: location.name)) // Dynamic color
                             }
                         }
-                        .frame(height: 150)
+                        .frame(height: 150) // Dynamic height (can be adjusted based on screen size)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .allowsHitTesting(false)
                     }
@@ -364,7 +373,7 @@ struct LocationDetailView: View {
             }
         }
     }
-    
+
     private func amenityIcon(for amenity: String) -> String {
         switch amenity {
         case "Free WiFi": return "wifi"
@@ -381,6 +390,25 @@ struct LocationDetailView: View {
         case "Premium Dining": return "star"
         default: return "mappin"
         }
+    }
+}
+
+// LocationManager Class
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private let locationManager = CLLocationManager()
+    @Published var location: CLLocation?
+
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else { return }
+        self.location = location
     }
 }
 
