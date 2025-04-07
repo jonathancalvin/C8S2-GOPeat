@@ -38,7 +38,7 @@ struct Filter: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 20)
-                        .foregroundStyle(Color("Primary"))
+                        .foregroundStyle(Color("Default"))
                 }
                 .sheet(isPresented: $showPriceFilter) {
                     MoreFilterView(maxPrice: $maxPrice, isOpenNow: $isOpenNow)
@@ -59,7 +59,7 @@ struct Filter: View {
                         Text(category)
                             .font(.caption)
                     }
-                    .foregroundStyle(selectedCategories.contains(category) ? Color("Secondary")  :  Color.primary)
+                    .foregroundStyle(selectedCategories.contains(category) ? Color("NonDefault")  :  Color.primary)
                     .padding(10)
                     .background(selectedCategories.contains(category) ? Color.blue : Color(.systemGray5))
                     .clipShape(Capsule())
@@ -115,7 +115,7 @@ struct MoreFilterView: View {
                         Text("Open Now")
                             .font(.caption)
                     }
-                    .foregroundStyle(tempIsOpenNow ? Color("Secondary") : Color("Primary"))
+                    .foregroundStyle(tempIsOpenNow ? Color("NonDefault") : Color("Default"))
                     .padding(10)
                     .background(tempIsOpenNow ? Color.blue : Color(.systemGray5))
                     .clipShape(Capsule())
@@ -129,14 +129,16 @@ struct MoreFilterView: View {
                         onClear()
                     } label: {
                         Text("Clear Filter")
-                            .foregroundStyle((tempMaxPrice != 100000 || tempIsOpenNow) ? Color.red : Color.gray)
+                            .foregroundStyle((tempMaxPrice != 100000 || tempIsOpenNow) ? Color.primary : Color.gray)
                             .padding(10)
                             .frame(maxWidth: .infinity)
-                            .background(Color.white)
+                            .background(
+                                (tempMaxPrice != 100000 || tempIsOpenNow) ? Color(.systemGray5) : Color.clear
+                            )
                             .clipShape(Capsule())
                             .overlay(
                                 Capsule()
-                                    .stroke((tempMaxPrice != 100000 || tempIsOpenNow) ? Color.red : Color.gray, lineWidth: 1)
+                                    .stroke(Color(.systemGray5), lineWidth: 1)
                             )
                     }
                     .disabled(tempMaxPrice == 100000 && !tempIsOpenNow)
@@ -145,7 +147,7 @@ struct MoreFilterView: View {
                         onApply()
                     } label: {
                         Text("Apply")
-                            .foregroundStyle(Color("Secondary"))
+                            .foregroundStyle(Color("NonDefault"))
                             .padding(10)
                             .frame(maxWidth: .infinity)
                             .background(Color.blue)
@@ -153,7 +155,6 @@ struct MoreFilterView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .shadow(radius: 5)
             }
             .frame(maxWidth: .infinity)
         }

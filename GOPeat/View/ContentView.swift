@@ -14,27 +14,40 @@ struct ContentView: View {
     @Query var tenants: [Tenant]
     @State private var showSheet = true
     
-    private func insertInitialData() {
+    
+    private func insertInitialData() async {
         // Create Canteen
         let greenEatery = Canteen(name: "Green Eatery",
             latitude: -6.302180333605081,
             longitude:  106.65229958867403,
-            image: "GreenEatery"
+            image: "GreenEatery",
+          desc: "Modern food court featuring diverse dishes",
+          operationalTime: "Monday - Friday: 6 AM - 9 PM",
+          amenities: ["Disabled Access", "Smoking Area", "Convenience Store"]
         )
-        let gOP6 = Canteen(name: "GOP6",
+        let gOP6 = Canteen(name: "GOP 6 Canteen",
             latitude: -6.303134809023461,
             longitude:  106.65281577080749,
-            image: "GOP6"
+            image: "GOP6",
+           desc: "Popular food court with multiple food stalls",
+           operationalTime: "Monday - Saturday: 6:30 AM - 8 PM",
+           amenities: ["Prayer Room", "ATM", "Printing Services"]
         )
-        let gOP1 = Canteen(name: "GOP1",
+        let gOP1 = Canteen(name: "GOP 1 Canteen",
             latitude: -6.301780422262836,
             longitude:  106.65017405960315,
-            image: "GOP1"
+            image: "GOP1",
+           desc: "Main cafeteria at GOP 1 offering various cuisines",
+           operationalTime: "Monday - Friday: 7 AM - 7 PM",
+           amenities: ["Free WiFi", "Air Conditioned", "Outdoor Seating"]
         )
-        let theBreeze = Canteen(name: "The Breeze",
+        let theBreeze = Canteen(name: "The Breeze Food Court",
             latitude: -6.301495171206343,
             longitude:  106.65514273021897,
-            image: "TheBreeze"
+            image: "TheBreeze",
+            desc: "Spacious food court with outdoor seating",
+            operationalTime: "Daily: 8 AM - 10 PM",
+            amenities: ["Live Music", "Event Space", "Premium Dining"]
         )
         context.insert(greenEatery)
         context.insert(gOP6)
@@ -120,7 +133,7 @@ struct ContentView: View {
         print("===============================")
     }
     
-    private func deleteInitialData(){
+    private func deleteInitialData() async {
         do {
             let canteens = try context.fetch(FetchDescriptor<Canteen>())
             for canteen in canteens {
@@ -159,19 +172,14 @@ struct ContentView: View {
     }
     var body: some View {
         VStack {
-            Map(){
-                ForEach(canteens){ canteen in
-                    Marker(canteen.name, coordinate: CLLocationCoordinate2D(latitude: canteen.latitude, longitude: canteen.longitude))
-                }
-            }
+            MapView(tenants: tenants, canteens: canteens)
         }
         .onAppear(){
-            deleteInitialData()
-            insertInitialData()
+            Task {
+                await deleteInitialData()
+                await insertInitialData()
+            }
             showInsertedData()
-        }
-        .sheet(isPresented: $showSheet) {
-            ModalSearchComponent(tenantSearchViewModel: TenantSearchViewModel(tenants: tenants))
         }
     }
 }

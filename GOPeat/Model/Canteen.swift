@@ -14,11 +14,17 @@ class Canteen: Identifiable {
     var latitude: Double
     var longitude: Double
     var image: String
+    var desc: String
+    var amenities: [String]
+    var operationalTime: String
     @Relationship(deleteRule: .cascade) var tenants: [Tenant] = []
-    init(name: String, latitude: Double,longitude: Double, image: String) {
+    init(name: String, latitude: Double,longitude: Double, image: String, desc: String, operationalTime: String, amenities: [String]) {
         self.name = name
         self.longitude = longitude
         self.latitude = latitude
         self.image = image
+        self.desc = desc
+        self.operationalTime = operationalTime
+        self.amenities = amenities
     }
 }
