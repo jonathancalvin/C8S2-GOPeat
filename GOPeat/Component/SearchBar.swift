@@ -32,6 +32,7 @@ struct SearchBar: View {
             .background(Color(.systemGray5))
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .padding(.trailing, 10)
+            .animation(.smooth(duration: 0.4), value: isTextFieldFocused)
             
             if isTextFieldFocused{
                 Button(action: {
@@ -42,6 +43,7 @@ struct SearchBar: View {
                     Text("Cancel")
                 }
             }
-        }.padding(.top, 10)
+        }
+        .padding(.top, 10)
     }
 }

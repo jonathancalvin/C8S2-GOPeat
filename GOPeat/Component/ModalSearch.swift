@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import MapKit
 
 class TenantSearchViewModel: ObservableObject{
     @Published var searchTerm: String = ""
@@ -18,6 +19,7 @@ class TenantSearchViewModel: ObservableObject{
         self.filteredTenants = tenants
     }
     func doSearch(searchTerm: String) -> [Tenant] {
+        guard !searchTerm.isEmpty else { return filteredTenants }
         let loweredCaseString = searchTerm.lowercased()
         let foodCategories = selectedCategories.filter{$0 != "Halal" && $0 != "Non-Halal"}
         return filteredTenants.filter { tenant in
@@ -31,7 +33,6 @@ class TenantSearchViewModel: ObservableObject{
             }
         }
     }
-    
     func isCurrentlyOpen(_ hours: String) -> Bool {
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm"
@@ -68,16 +69,6 @@ class TenantSearchViewModel: ObservableObject{
                 Set(foodCategories).isSubset(of: Set(food.categories.map { $0.rawValue }))
             })
         }
-//        if foodCategories.isEmpty {
-//            filteredTenants = halalTenants
-//        } else {
-//            Filter by foodCategories
-//            filteredTenants = halalTenants.filter{ tenant in
-//                return tenant.foods.contains { food in
-//                    Set(foodCategories).isSubset(of: Set(food.categories.map {$0.rawValue}))
-//                }
-//            }
-//        }
     }
     func saveRecentSearch(searchTerm: String) {
         recentSearch.removeAll { $0.lowercased() == searchTerm.lowercased() }
@@ -91,13 +82,16 @@ class TenantSearchViewModel: ObservableObject{
         searchTerm = ""
         selectedCategories = []
         filteredTenants = tenants
+        isOpenNow = false
+        maxPrice = 100000
     }
 }
 
-struct ModalSearchComponent: View {
+struct ModalSearch: View {
     @FocusState var isTextFieldFocused: Bool
     private let maxHeight: PresentationDetent = .fraction(1)
     @ObservedObject var tenantSearchViewModel: TenantSearchViewModel
+//    var onTenantSelected: (Tenant) -> Void
     
     private func showTenant(tenants: [Tenant]) -> some View {
         VStack(alignment: .leading) {
@@ -107,17 +101,7 @@ struct ModalSearchComponent: View {
                 .padding(0)
             Divider()
             ForEach(tenants) {tenant in
-                HStack{
-                    Image(tenant.image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 80)
-                    VStack{
-                        Text(tenant.name)
-                        Text(tenant.canteen?.name ?? "")
-                    }
-                    Spacer()
-                }
+                TenantCard(tenant: tenant)
             }
         }
     }
@@ -172,11 +156,7 @@ struct ModalSearchComponent: View {
                         showRecentSearch()
                     }
                     VStack {
-                        if tenantSearchViewModel.searchTerm.isEmpty {
-                            showTenant(tenants: tenantSearchViewModel.filteredTenants)
-                        } else {
-                            showTenant(tenants: tenantSearchViewModel.doSearch(searchTerm: tenantSearchViewModel.searchTerm))
-                        }
+                        showTenant(tenants: tenantSearchViewModel.doSearch(searchTerm: tenantSearchViewModel.searchTerm))
                     }.padding(.top, tenantSearchViewModel.recentSearch.isEmpty ? 0 : 10)
                 }
             }
