@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
-struct GOPeatApp: App {
+struct GOPeat: App {
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
