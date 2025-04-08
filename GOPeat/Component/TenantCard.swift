@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TenantCard: View {
     let tenant: Tenant
+    @State var showTenantDetail = false
 //    let onTenantSelected: (Tenant) -> Void
     private func infoRow(label: String, value: String) -> some View {
         HStack(alignment: .top) {
@@ -23,6 +24,7 @@ struct TenantCard: View {
     var body: some View {
         Button(action: {
 //             onTenantSelected(tenant)
+            showTenantDetail = true
         }) {
             HStack {
                 Image(tenant.image)
@@ -48,5 +50,11 @@ struct TenantCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
+        .fullScreenCover(isPresented: $showTenantDetail) {
+            showTenantDetail = false
+        } content: {
+            TenantView(tenant: tenant, foods: tenant.foods)
+        }
+
     }
 }
