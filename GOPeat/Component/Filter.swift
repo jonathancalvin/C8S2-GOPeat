@@ -10,8 +10,8 @@ import SwiftUI
 struct Filter: View {
     let categories: [String]
     @Binding var selectedCategories: [String]
-    @Binding var maxPrice: Double
-    @Binding var isOpenNow: Bool
+    @Binding var maxPrice: Double?
+    @Binding var isOpenNow: Bool?
     
     @State var showPriceFilter: Bool = false
     
@@ -31,17 +31,23 @@ struct Filter: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 20) {
-                Button {
-                    showPriceFilter = true
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 20)
-                        .foregroundStyle(Color("Default"))
-                }
-                .sheet(isPresented: $showPriceFilter) {
-                    MoreFilterView(maxPrice: $maxPrice, isOpenNow: $isOpenNow)
+                if let m = maxPrice,
+                   let i = isOpenNow {
+                    Button {
+                        showPriceFilter = true
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20)
+                            .foregroundStyle(Color("Default"))
+                    }
+                    .sheet(isPresented: $showPriceFilter) {
+                        MoreFilterView(
+                            maxPrice: Binding(get: { maxPrice ?? 100000 }, set: { maxPrice = $0 }),
+                            isOpenNow: Binding(get: { isOpenNow ?? false }, set: { isOpenNow = $0 })
+                        )
+                    }
                 }
                 
                 ForEach(categories, id: \.self) { category in

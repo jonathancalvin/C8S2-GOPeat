@@ -10,7 +10,6 @@ import SwiftUI
 struct TenantCard: View {
     let tenant: Tenant
     @State var showTenantDetail = false
-//    let onTenantSelected: (Tenant) -> Void
     private func infoRow(label: String, value: String) -> some View {
         HStack(alignment: .top) {
             Text("\(label):")
@@ -23,7 +22,6 @@ struct TenantCard: View {
 
     var body: some View {
         Button(action: {
-//             onTenantSelected(tenant)
             showTenantDetail = true
         }) {
             HStack {

@@ -8,8 +8,8 @@ class TenantSearchViewModel: ObservableObject{
     @Published var selectedCategories: [String] = []
     @Published var filteredTenants: [Tenant] = []
     @Published var recentSearch: [String] = []
-    @Published var maxPrice: Double = 100000
-    @Published var isOpenNow: Bool = false
+    @Published var maxPrice: Double? = 100000
+    @Published var isOpenNow: Bool? = false
     
     let tenants: [Tenant]
     let categories: [String] = ["Halal", "Non-Halal"] + FoodCategory.allCases.map{ $0.rawValue }
@@ -63,8 +63,8 @@ class TenantSearchViewModel: ObservableObject{
         filteredTenants = halalTenants.filter { tenant in
             let withinPriceRange = tenant.priceRange.split(separator: "-").compactMap { Double($0.replacingOccurrences(of: ".", with: "")) }
             let minPriceInRange = withinPriceRange.min() ?? 0
-            let isPriceValid = minPriceInRange <= maxPrice
-            let isOpen = !isOpenNow || isCurrentlyOpen(tenant.operationalHours)
+            let isPriceValid = minPriceInRange <= maxPrice ?? 100000
+            let isOpen = !(isOpenNow ?? false) || isCurrentlyOpen(tenant.operationalHours)
             return isPriceValid && isOpen && (foodCategories.isEmpty || tenant.foods.contains { food in
                 Set(foodCategories).isSubset(of: Set(food.categories.map { $0.rawValue }))
             })
