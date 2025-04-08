@@ -1,53 +1,36 @@
-// Tenant Page Backup
-
-
-
+//
 //  CanteenCard.swift
 //  GOPeat
 //
 //  Created by Oxa Marvel on 24/03/25.
 //
 
-
 import SwiftUI
 
-
-// Model for our items
-struct Item: Identifiable, Hashable {
-    let id = UUID()
-    let name: String
-    let description: String
-}
 
 
 // Tenant Page
 struct TenantView: View {
-    init() {
-        let appear = UINavigationBarAppearance()
+    
+    init(tenants: [Tenant]) {
+        self.tenants = tenants
         
+        let appear = UINavigationBarAppearance()
         appear.backgroundColor = .white
         appear.shadowColor = .clear
         appear.shadowImage = UIImage()
-        
         UINavigationBar.appearance().isTranslucent = true
         UINavigationBar.appearance().standardAppearance = appear
         UINavigationBar.appearance().compactAppearance = appear
         UINavigationBar.appearance().scrollEdgeAppearance = appear
-        
         UITabBar.appearance().isHidden = true
     }
     
-    // Sample Data
-    let sampleImages = ["image1", "image2", "image3", "image4", "image5"]
-    let sampleItems = [
-        Item(name: "Nasi Lemak", description: "nasi",),
-        Item(name: "Ayam bakar", description: "ayam bakar"),
-        Item(name: "Sate Ayam", description: "sate ayam",),
-        Item(name: "Tempe Goreng", description: "tempe goreng"),
-        Item(name: "Tempe Oreg", description: "tempe oreg")
-    ]
-    // Sample Data
     
+    let tenants: [Tenant]
+    let sampleImages = ["image1", "image2", "image3", "image4", "image5"]
+
+
     
     var body: some View {
         NavigationView {
@@ -55,70 +38,7 @@ struct TenantView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         
-                        // Tenant Header & Description
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                VStack (alignment: .leading) {
-                                    Text("Mama Djempol")
-                                        .font(.largeTitle.bold())
-                                    Text("Green Eatery")
-                                        .font(.body)
-                                    //.foregroundColor(.gray)
-                                }
-                                
-                                Spacer()
-                                
-//                        if true {
-//                            Image("halal")
-//                                .resizable()
-//                                .frame(width: 40, height: 40)
-//                        } else {
-//                            /*@START_MENU_TOKEN@*/EmptyView()/*@END_MENU_TOKEN@*/
-//                        }
-                            }
-                            
-                            HStack() {
-                                VStack(alignment: .leading, spacing: 10) {
-                                    HStack() {
-                                        Image(systemName: "clock")
-                                        Text("09:00-14:00")
-                                            .font(.body)
-                                    }
-                                    
-                                    HStack() {
-                                        Image(systemName: "phone")
-                                        Text("08123456789")
-                                            .font(.body)
-                                        
-                                        if /*@START_MENU_TOKEN@*/true/*@END_MENU_TOKEN@*/ {
-                                            (Text("(Pre-order ") +
-                                             Text(Image(systemName: "checkmark.circle.fill")).foregroundColor(.green) +
-                                             Text(")"))
-                                            .font(.body)
-                                        } else {
-                                            (Text("(Pre-order ") +
-                                             Text(Image(systemName: "xmark.circle.fill")).foregroundColor(.red) +
-                                             Text(")"))
-                                            .font(.body)
-                                        }
-                                        
-                                    }
-                                }
-                                
-                                Spacer()
-                                
-                                if true {
-                                    Image("halal")
-                                        .resizable()
-                                        .frame(width: 40, height: 40)
-                                } else {
-                                    /*@START_MENU_TOKEN@*/EmptyView()/*@END_MENU_TOKEN@*/
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                        // Tenant Header & Description
-                        
+                        Header()
                         
                         // Tenant's Side-scrolling images
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -144,27 +64,24 @@ struct TenantView: View {
                         // Filter Component
                         
                         
-                        // List of Menu
+                        // List of Food
                         VStack(spacing: 10) {
-                            ForEach(sampleItems) { item in
-                                ItemCard(item: item)
+                            ForEach(tenants.foods) { food in
+                                FoodCard(food: food)
                             }
                         }
                         .padding(.horizontal)
-                        // List of Menu
+                        // List of Foods
                     }
                     .padding(.vertical)
                 }
                 .scrollIndicators(.hidden)
             }
             .ignoresSafeArea(edges: .bottom)
-//          .navigationTitle("jl.coder")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                //Left
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        
                     } label: {
                         (Text(Image(systemName: "chevron.left"))
                          + Text(" Back"))
@@ -177,23 +94,88 @@ struct TenantView: View {
 // Tenant Page
 
 
+
+
+// Tenant Header & Description
+
+struct Header: View {
+    var body: some View {
+        
+        VStack(alignment: .leading, spacing: 10) {
+            VStack (alignment: .leading) {
+                Text("Mama Djempol")
+                    .font(.largeTitle.bold())
+                Text("Green Eatery")
+                    .font(.body)
+                //.foregroundColor(.gray)
+                Spacer()
+            }
+
+            
+            HStack() {
+                VStack(alignment: .leading, spacing: 10) {
+                    (Text(Image(systemName: "clock")) +
+                     Text(" 09:00-14:00")
+                        .font(.body)
+                     )
+                    
+                    HStack() {
+                        (Text(Image(systemName: "phone")) +
+                         Text(" 08123456789")
+                            .font(.body) +
+                         Text(" (Pre-order")
+                         )
+                        
+                        if tenant.preorderInformation == /*@START_MENU_TOKEN@*/true/*@END_MENU_TOKEN@*/ {
+                            (Text(Image(systemName: "checkmark.circle.fill")).foregroundColor(.green) +
+                             Text(")"))
+                            .font(.body)
+                        } else {
+                            (Text(Image(systemName: "xmark.circle.fill")).foregroundColor(.red) +
+                             Text(")"))
+                            .font(.body)
+                        }
+                        
+                    }
+                }
+                
+                Spacer()
+                
+                if tenant.isHalal == true {
+                    Image("halal")
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                } else {
+                    /*@START_MENU_TOKEN@*/EmptyView()/*@END_MENU_TOKEN@*/
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+}
+// Tenant Header & Description
+
+
+
+
+
 // Food Card
-struct ItemCard: View {
-    let item: Item
+struct FoodCard: View {
+    let food: Food
     
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 5) {
-                Text(item.name)
+                Text(food.name)
                 //Text(food.name)
                     .font(.headline)
                     
-                Text(item.description)
+                Text(food.desc)
                 //Text(food.description)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
-                
+
             Spacer()
         }
         .padding()
@@ -208,10 +190,8 @@ struct ItemCard: View {
 // Food Card
 
 
-// Preview
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        TenantView()
-    }
+
+#Preview {
+    TenantView(tenants: mamaDjempol)
 }
 // Preview
