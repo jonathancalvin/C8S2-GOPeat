@@ -8,12 +8,13 @@
 import SwiftUI
 import MapKit
 import SwiftData
+
 struct ContentView: View {
     @Environment(\.modelContext) private var context
     @Query var canteens: [Canteen]
     @Query var tenants: [Tenant]
     @State private var showSheet = true
-    
+    @State private var isDataLoaded = false
     
     private func insertInitialData() async {
         // Create Canteen
@@ -171,15 +172,24 @@ struct ContentView: View {
         }
     }
     var body: some View {
-        VStack {
-            MapView(tenants: tenants, canteens: canteens)
+        Group {
+            if isDataLoaded {
+                VStack {
+                    MapView(tenants: tenants, canteens: canteens)
+                }
+            } else {
+                // Show loading view while data is being initialized
+                ProgressView("Loading data...")
+            }
         }
-        .onAppear(){
-            Task {
+        .task {  
+            // Check if we already have data
+            if canteens.isEmpty {
                 await deleteInitialData()
                 await insertInitialData()
             }
             showInsertedData()
+            isDataLoaded = true
         }
     }
 }
