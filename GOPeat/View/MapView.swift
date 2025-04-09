@@ -88,7 +88,7 @@ struct MapView: View {
     init(tenants: [Tenant], canteens: [Canteen]) {
         self.tenants = tenants
         self.canteens = canteens
-        _tenantSearchViewModel = StateObject(wrappedValue: TenantSearchViewModel(tenants: tenants))
+        self._tenantSearchViewModel = StateObject(wrappedValue: TenantSearchViewModel(tenants: tenants))
     }
 
     private func zoomToLocation(_ coordinate: CLLocationCoordinate2D) {

@@ -89,7 +89,7 @@ class TenantSearchViewModel: ObservableObject{
 
 struct ModalSearch: View {
     @FocusState var isTextFieldFocused: Bool
-    private let maxHeight: PresentationDetent = .fraction(1)
+    private let maxHeight: PresentationDetent = .fraction(0.9)
     @ObservedObject var tenantSearchViewModel: TenantSearchViewModel
 //    var onTenantSelected: (Tenant) -> Void
     
@@ -101,7 +101,7 @@ struct ModalSearch: View {
                 .padding(0)
             Divider()
             ForEach(tenants) {tenant in
-                TenantCard(tenant: tenant)
+                TenantCard(tenant: tenant, selectedCategories: $tenantSearchViewModel.selectedCategories)
             }
         }
     }
@@ -162,7 +162,7 @@ struct ModalSearch: View {
             }
         }
         .padding()
-        .presentationDetents([.fraction(0.1), .fraction(0.7), .fraction(1)], selection: $tenantSearchViewModel.sheeHeight)
+        .presentationDetents([.fraction(0.1), .fraction(0.7), .fraction(0.9)], selection: $tenantSearchViewModel.sheeHeight)
         .interactiveDismissDisabled()
         .presentationBackgroundInteraction(.enabled(upThrough: maxHeight))
         .onChange(of: isTextFieldFocused, initial: false) { _, newValue in

@@ -25,7 +25,7 @@ class FoodFilterViewModel: ObservableObject{
         self.filteredFoods = foods
     }
     
-    func updateFilteredFood() {
+    func updateFilteredFood(selectedCategories: [String]) {
         if selectedCategories.isEmpty {
             filteredFoods = foods
         } else {
@@ -45,23 +45,24 @@ struct TenantView: View {
     let isHalal: Bool
     let symbol: String
     let color: Color
+    @Binding var selectedCategories: [String]
     @StateObject private var viewModel: FoodFilterViewModel
     
     @State private var maxPrice: Double? = nil
     @State private var isOpenNow: Bool? = nil
 
     
-    init(tenant: Tenant, foods: [Food]) {
+    init(tenant: Tenant, foods: [Food], selectedCategories: Binding<[String]>) {
         self.foods = foods
         self.tenant = tenant
         self.isHalal = tenant.isHalal ?? false
         self.symbol = isHalal ? "checkmark.circle.fill" : "xmark.circle.fill"
         self.color = isHalal ? .green : .red
+        self._selectedCategories = selectedCategories
         _viewModel = StateObject(wrappedValue: FoodFilterViewModel(foods: foods))
         
         let appear = UINavigationBarAppearance()
         
-        appear.backgroundColor = .white
         appear.shadowColor = .clear
         appear.shadowImage = UIImage()
         
@@ -140,10 +141,10 @@ struct TenantView: View {
                         imageSlider(image: sampleImages)
                         
                         // Filter Component
-                        Filter(categories: viewModel.categories, selectedCategories: $viewModel.selectedCategories, maxPrice: $maxPrice, isOpenNow: $isOpenNow)
-                            .onChange(of: viewModel.selectedCategories) { _, _ in
-                                viewModel.updateFilteredFood()
-                            }                        
+                        Filter(categories: viewModel.categories, selectedCategories: $selectedCategories, maxPrice: $maxPrice, isOpenNow: $isOpenNow)
+                            .onChange(of: selectedCategories) { _, _ in
+                                viewModel.updateFilteredFood(selectedCategories: selectedCategories)
+                            }
                         
                         // List of Food
                         VStack(spacing: 10) {
@@ -152,11 +153,14 @@ struct TenantView: View {
                             }
                         }
                         .padding(.horizontal)
-                        // List of Foods
                     }
                     .padding(.vertical)
                 }
                 .scrollIndicators(.hidden)
+            }
+            .onAppear(){
+                selectedCategories = selectedCategories.filter {$0 != "Halal" &&  $0 != "Non-Halal"}
+                viewModel.updateFilteredFood(selectedCategories: selectedCategories)
             }
             .ignoresSafeArea(edges: .bottom)
             .navigationBarTitleDisplayMode(.inline)
@@ -173,8 +177,6 @@ struct TenantView: View {
         }
     }
 }
-// Tenant Page
-
 
 // Food Card
 struct FoodCard: View {
@@ -202,4 +204,3 @@ struct FoodCard: View {
         )
     }
 }
-// Food Card

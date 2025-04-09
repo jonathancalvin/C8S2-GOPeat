@@ -10,6 +10,7 @@ import SwiftUI
 struct TenantCard: View {
     let tenant: Tenant
     @State var showTenantDetail = false
+    @Binding var selectedCategories: [String]
     private func infoRow(label: String, value: String) -> some View {
         HStack(alignment: .top) {
             Text("\(label):")
@@ -51,7 +52,7 @@ struct TenantCard: View {
         .fullScreenCover(isPresented: $showTenantDetail) {
             showTenantDetail = false
         } content: {
-            TenantView(tenant: tenant, foods: tenant.foods)
+            TenantView(tenant: tenant, foods: tenant.foods, selectedCategories: $selectedCategories)
         }
 
     }
