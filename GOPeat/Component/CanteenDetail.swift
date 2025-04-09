@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import SwiftData
 
 struct CanteenDetail: View {
     let canteen: Canteen
@@ -65,16 +66,13 @@ struct CanteenDetail: View {
                         }
                     }
                     
-                    // Map Preview
+                    // Map Section
                     VStack(alignment: .leading, spacing: 8) {
                         Text("LOCATION")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
-                        Map(initialPosition: .region(MKCoordinateRegion(
-                            center: CLLocationCoordinate2D(latitude: canteen.latitude, longitude: canteen.longitude),
-                            span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
-                        ))) {
+
+                        Map {
                             Annotation("", coordinate: CLLocationCoordinate2D(latitude: canteen.latitude, longitude: canteen.longitude)) {
                                 Image(systemName: "mappin.circle.fill")
                                     .font(.title)
@@ -84,9 +82,10 @@ struct CanteenDetail: View {
                         .frame(height: 150)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .allowsHitTesting(false)
-                        
                     }
-                    .padding(.top)
+                    
+                    // Tenants Section
+//                    showTenant(tenants: canteen.tenants.sorted(by: { $0.name < $1.name })) // Ensure tenants is not nil and sort them
                 }
                 .padding()
             }
@@ -113,7 +112,14 @@ struct CanteenDetail: View {
         case "Live Music": return "music.mic"
         case "Event Space": return "calendar"
         case "Premium Dining": return "star"
+        case "Prayer Room": return "mosque" // Added prayer room icon
         default: return "mappin"
         }
     }
+}
+
+#Preview {
+    // You'll need to create a dummy Canteen object for the preview
+    let dummyCanteen = Canteen(name: "Green Eatery", latitude: -6.302180333605081, longitude: 106.65229958867403, image: "GreenEatery", desc: "Modern food court featuring diverse dishes", operationalTime: "Monday - Friday: 6 AM - 9 PM", amenities: ["Disabled Access", "Smoking Area", "Convenience Store"])
+    return CanteenDetail(canteen: dummyCanteen, dismissAction: {})
 }

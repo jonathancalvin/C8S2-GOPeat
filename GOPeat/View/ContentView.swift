@@ -71,12 +71,25 @@ struct ContentView: View {
                contactPerson: "08123456789",
                preorderInformation: true,
                             operationalHours: "09:00-14:00", isHalal: true, canteen: greenEatery, priceRange: "17.000-35.000")
+        let dapurMiminTenant = Tenant(name: "Dapur Mimin",
+                                                image: "dapurMimin",
+                                                contactPerson: "-",
+                                                preorderInformation: false,
+                                                operationalHours: "11:00-17:00", isHalal: true, canteen: gOP6, priceRange: "18.000-25.000")
+                // Create Tenant -- GOP 6 (Nasi Padang)
+                let nasiPadangTenant = Tenant(name: "Nasi Kapau Nusantara", // Example name
+                                                image: "NasiPadang", // Replace with actual image name
+                                                contactPerson: "08987654321",
+                                                preorderInformation: true,
+                                                operationalHours: "10:00-16:00", isHalal: true, canteen: gOP6, priceRange: "15.000-30.000")
         // TO DO - create tenant for each canteen (gOP6, gOP1, theBreeze)
         
         // Masukkan Tenant ke context
         context.insert(mamaDjempol)
         context.insert(kasturi)
         context.insert(laDing)
+        context.insert(dapurMiminTenant)
+        context.insert(nasiPadangTenant)
 
         
         // create food for each canteen
@@ -117,22 +130,55 @@ struct ContentView: View {
             Food(name: "Tempe Orek", description: "Tempe goreng kecap", categories: [.greasy, .nonSpicy, .savory], tenant: mamaDjempol),
             Food(name: "Kangkung", description: "Tumis kangkung", categories: [.nonGreasy, .spicy, .savory], tenant: mamaDjempol),
             Food(name: "Sayur Toge", description: "Tumis toge", categories: [.nonGreasy, .nonSpicy], tenant: mamaDjempol)
-        ]
+            ]
+            
+            let dapurMiminFoods = [
+                Food(name: "Tempe", description: "Tempe.", categories: [.nonSpicy, .savory], tenant: dapurMiminTenant),
+                Food(name: "Telor Kecap", description: "Telur, kecap.", categories: [.nonSpicy, .sweet, .savory], tenant: dapurMiminTenant),
+                Food(name: "Jamur Cabe Garam", description: "Jamur, cabe, garam.", categories: [.spicy, .savory], tenant: dapurMiminTenant),
+                Food(name: "Ikan Bandeng Presto", description: "Ikan bandeng presto.", categories: [.nonSpicy, .savory], tenant: dapurMiminTenant),
+                Food(name: "Perkedel Jagung", description: "Jagung, goreng.", categories: [.nonSpicy, .sweet, .savory], tenant: dapurMiminTenant),
+                Food(name: "Tahu Telur Nasi", description: "Tahu, telur, nasi, saus kacang.", categories: [.nonSpicy, .savory], tenant: dapurMiminTenant),
+                Food(name: "Gado Polos", description: "Sayuran, bumbu kacang.", categories: [.nonSpicy, .savory], tenant: dapurMiminTenant),
+                Food(name: "Gado Gado + Telur", description: "Sayuran, bumbu kacang, telur.", categories: [.nonSpicy, .savory], tenant: dapurMiminTenant),
+                Food(name: "Mieprak", description: "Mie instan.", categories: [.savory], tenant: dapurMiminTenant),
+                Food(name: "Nasi Kebuli", description: "Nasi, rempah, kaldu.", categories: [.savory], tenant: dapurMiminTenant),
+                Food(name: "Nasi Briyani", description: "Nasi, rempah, daging.", categories: [.savory], tenant: dapurMiminTenant),
+                Food(name: "Siomay (3 pcs)", description: "Ikan, tepung, bumbu kacang.", categories: [.savory], tenant: dapurMiminTenant),
+                Food(name: "Soto Ayam", description: "Ayam, kuah soto, rempah.", categories: [.nonSpicy, .savory, .soup], tenant: dapurMiminTenant),
+                Food(name: "Tahu Sechyan", description: "Tahu, bumbu Szechuan.", categories: [.spicy, .savory], tenant: dapurMiminTenant)
+            ]
+
+            let nasiPadangFoods = [
+                Food(name: "Nasi Padang", description: "Nasi dengan berbagai pilihan lauk khas Padang.", categories: [.savory], tenant: nasiPadangTenant),
+                Food(name: "Rendang Daging", description: "Daging sapi yang dimasak dalam bumbu rendang yang kaya rempah.", categories: [.nonSpicy, .savory], tenant: nasiPadangTenant),
+                Food(name: "Ayam Gulai", description: "Ayam yang dimasak dalam kuah gulai kuning yang gurih.", categories: [.nonSpicy, .savory], tenant: nasiPadangTenant),
+                Food(name: "Ayam Bakar", description: "Ayam yang dibakar dengan bumbu khas.", categories: [.nonSpicy, .savory], tenant: nasiPadangTenant),
+                Food(name: "Ikan Bakar", description: "Ikan yang dibakar dengan bumbu khas.", categories: [.nonSpicy, .savory], tenant: nasiPadangTenant),
+                Food(name: "Telur Dadar", description: "Telur dadar khas Padang yang tebal dan renyah.", categories: [.nonSpicy, .savory], tenant: nasiPadangTenant),
+                Food(name: "Sayur Nangka", description: "Gulai nangka muda.", categories: [.nonSpicy, .savory], tenant: nasiPadangTenant),
+                Food(name: "Daun Singkong", description: "Daun singkong rebus yang dibumbui.", categories: [.nonSpicy, .savory], tenant: nasiPadangTenant),
+                Food(name: "Sambal Ijo", description: "Sambal cabai hijau khas Padang.", categories: [.spicy, .savory], tenant: nasiPadangTenant),
+                Food(name: "Kerupuk Kulit", description: "Kerupuk kulit sapi goreng.", categories: [.nonSpicy, .savory, .greasy], tenant: nasiPadangTenant)
+            ]
+            //TO DO - create food for other tenant
+
+            // Insert semua data ke dalam modelContext
+            let allFoods = kasturiFoods + laDingFoods + mamaDjempolFoods + dapurMiminFoods + nasiPadangFoods
+            for food in allFoods {
+                context.insert(food)
+            }
+            do {
+                try context.save()
+            } catch {
+                fatalError(error.localizedDescription)
+            }
+            print("Insert Initial Data Success")
+            print("===============================")
+        }
         //TO DO - create food for other tenant
         
         // Insert semua data ke dalam modelContext
-        let allFoods = kasturiFoods + laDingFoods + mamaDjempolFoods
-        for food in allFoods {
-            context.insert(food)
-        }
-        do {
-            try context.save()
-        } catch {
-            fatalError(error.localizedDescription)
-        }
-        print("Insert Initial Data Success")
-        print("===============================")
-    }
     
     private func deleteInitialData() async {
         do {

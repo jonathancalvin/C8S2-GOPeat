@@ -125,7 +125,6 @@ struct TenantView: View {
             .padding(.horizontal)
         }
     }
-    
     var body: some View {
         NavigationView {
             ZStack (alignment: .top){
