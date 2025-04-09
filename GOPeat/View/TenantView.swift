@@ -1,7 +1,4 @@
-// Tenant Page Backup Apr 8
-
-
-
+//
 //  CanteenCard.swift
 //  GOPeat
 //
@@ -128,6 +125,7 @@ struct TenantView: View {
             .padding(.horizontal)
         }
     }
+    
     var body: some View {
         NavigationView {
             ZStack (alignment: .top){

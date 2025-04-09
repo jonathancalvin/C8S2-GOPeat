@@ -74,16 +74,14 @@ struct MapView: View {
     @State private var camera: MapCameraPosition = .automatic
     @State private var selectedCanteen: Canteen?
     @State private var showDetail = false
-    @State private var showSearchModal = true
+    @State private var showSearchModal = false
     @State private var mapOffset: CGFloat = 0
     @StateObject private var locationManager = LocationManager()
-    @AppStorage("hasSeenMapTutorial") private var hasSeenMapTutorial = false
-    @State private var showMapTutorial = false
+    @StateObject private var tenantSearchViewModel: TenantSearchViewModel
+    @State private var showTutorial = false
 
     let tenants: [Tenant]
     let canteens: [Canteen]
-
-    @StateObject private var tenantSearchViewModel: TenantSearchViewModel
 
     init(tenants: [Tenant], canteens: [Canteen]) {
         self.tenants = tenants
@@ -198,6 +196,16 @@ struct MapView: View {
                 Spacer()
             }
             .padding(.top)
+
+            // Tutorial Overlay
+            if showTutorial {
+                MapTutorialOverlay(isPresented: $showTutorial) {
+                    withAnimation {
+                        showTutorial = false
+                        showSearchModal = true // Show search modal after tutorial
+                    }
+                }
+            }
         }
         .sheet(isPresented: $showDetail, onDismiss: {
             withAnimation(.easeInOut(duration: 0.3)) {
@@ -213,27 +221,19 @@ struct MapView: View {
                 .presentationDetents([.medium])
             }
         }
-        .sheet(isPresented: $showSearchModal, onDismiss: {}) {
+        .sheet(isPresented: Binding(
+            get: { showSearchModal && !showTutorial },
+            set: { showSearchModal = $0 }
+        ), onDismiss: {}) {
             ModalSearch(
                 tenantSearchViewModel: tenantSearchViewModel
             )
         }
-        .overlay {
-            if !hasSeenMapTutorial {
-                MapTutorialOverlay(isPresented: $showMapTutorial) {
-                    // Mark tutorial as seen when dismissed
-                    hasSeenMapTutorial = true
-                }
-                .transition(.opacity)
-            }
-        }
         .onAppear {
-            if !hasSeenMapTutorial {
-                // Small delay to show tutorial after location permission dialog
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    withAnimation {
-                        showMapTutorial = true
-                    }
+            // Show tutorial immediately when view appears
+            DispatchQueue.main.asyncAfter(deadline: .now()) {
+                withAnimation {
+                    showTutorial = true
                 }
             }
         }

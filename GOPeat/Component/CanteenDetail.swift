@@ -105,7 +105,6 @@ struct CanteenDetail: View {
         case "Free WiFi": return "wifi"
         case "Air Conditioned": return "air.conditioner.horizontal"
         case "Outdoor Seating": return "table.furniture"
-        case "Prayer Room": return "pray"
         case "ATM": return "banknote"
         case "Printing Services": return "printer"
         case "Disabled Access": return "figure.roll"

@@ -9,6 +9,9 @@ struct MapTutorialOverlay: View {
             // Semi-transparent dark background
             Color.black.opacity(0.75)
                 .ignoresSafeArea()
+                // Add these modifiers to ensure overlay is above sheets
+                .accessibilityHidden(true)
+                .allowsHitTesting(true)
             
             VStack(spacing: 24) {
                 Image(systemName: "map")
@@ -54,6 +57,9 @@ struct MapTutorialOverlay: View {
             }
             .padding(.horizontal, 24)
         }
+        // Add these modifiers to ensure proper z-index and interaction
+        .zIndex(999)
+        .ignoresSafeArea()
     }
 }
 

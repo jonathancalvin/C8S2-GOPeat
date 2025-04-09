@@ -174,16 +174,12 @@ struct ContentView: View {
     var body: some View {
         Group {
             if isDataLoaded {
-                VStack {
-                    MapView(tenants: tenants, canteens: canteens)
-                }
+                MapView(tenants: tenants, canteens: canteens)
             } else {
-                // Show loading view while data is being initialized
                 ProgressView("Loading data...")
             }
         }
         .task {  
-            // Check if we already have data
             if canteens.isEmpty {
                 await deleteInitialData()
                 await insertInitialData()
