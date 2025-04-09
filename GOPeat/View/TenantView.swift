@@ -18,8 +18,12 @@ class FoodFilterViewModel: ObservableObject{
     let categories: [String] = FoodCategory.allCases.map{ $0.rawValue }
     
     init(foods: [Food]) {
-        self.foods = foods
-        self.filteredFoods = foods
+        let tenant = foods.first?.tenant
+        var tempfoods = foods
+        let dummy = Food(name: "Dumy", description: "Dumy", categories: [.nonSpicy, .nonGreasy, .nonSweet, .spicy, .greasy, .sweet, .soup, .roast, .savory], tenant: tenant)
+        tempfoods.insert(dummy, at: 0)
+        self.foods = tempfoods
+        self.filteredFoods = tempfoods
     }
     
     func updateFilteredFood(selectedCategories: [String]) {
@@ -90,7 +94,7 @@ struct TenantView: View {
                         Label(tenant.contactPerson, systemImage: "phone")
                         Text("(Pre-order")
                         (Text(Image(systemName: symbol)).foregroundColor(color) + Text(")"))
-                            .font(.body)                        
+                            .font(.body)
                     }
                 }
                 
@@ -141,12 +145,21 @@ struct TenantView: View {
                         Filter(categories: viewModel.categories, selectedCategories: $selectedCategories, maxPrice: $maxPrice, isOpenNow: $isOpenNow)
                             .onChange(of: selectedCategories) { _, _ in
                                 viewModel.updateFilteredFood(selectedCategories: selectedCategories)
-                            }
+                            }.padding(.horizontal, 20)
                         
                         // List of Food
                         VStack(spacing: 10) {
-                            ForEach(viewModel.filteredFoods) { food in
-                                FoodCard(food: food)
+                            if viewModel.filteredFoods.count == 1 && viewModel.filteredFoods.first?.name == "Dumy" {
+                                Text("Not Found")
+                                    .font(.subheadline)
+                                    .bold()
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding(.top, 10)
+                                
+                            } else {
+                                ForEach(viewModel.filteredFoods.filter { $0.name != "Dumy" }) { food in
+                                    FoodCard(food: food)
+                                }
                             }
                         }
                         .padding(.horizontal)

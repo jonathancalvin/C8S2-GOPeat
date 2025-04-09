@@ -12,6 +12,54 @@ import SwiftData
 struct CanteenDetail: View {
     let canteen: Canteen
     var dismissAction: () -> Void
+    @StateObject var viewModel: TenantSearchViewModel
+    
+    init(canteen: Canteen, dismissAction: @escaping () -> Void) {
+        self.canteen = canteen
+        self.dismissAction = dismissAction
+        self._viewModel = StateObject(wrappedValue: TenantSearchViewModel(tenants: canteen.tenants))
+    }
+
+//    private func showTenant(tenants: [Tenant]) -> some View {
+//        VStack(alignment: .leading) {
+//            Text("Tenants")
+//                .font(.headline)
+//                .fontWeight(.bold)
+//                .padding(0)
+//            Divider()
+//            if !tenants.isEmpty {
+//                ForEach(tenants) {tenant in
+//                    TenantCard(tenant: tenant, selectedCategories: $viewModel.selectedCategories)
+//                }
+//            } else {
+//                Text("Coming Soon")
+//                    .font(.subheadline)
+//                    .frame(maxWidth: .infinity, alignment: .center)
+//            }
+//        }
+//    }
+    
+    private func showTenant(tenants: [Tenant]) -> some View {
+        VStack(alignment: .leading) {
+            Text("Tenants")
+                .font(.headline)
+                .fontWeight(.bold)
+                .padding(0)
+            Divider()
+            if !tenants.isEmpty {
+                ForEach(tenants) {tenant in
+                    TenantCard(tenant: tenant, selectedCategories: $viewModel.selectedCategories)
+                }
+            } else {
+                Text("Not Found")
+                    .font(.subheadline)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 10)
+            }
+        }
+    }
+
     
     var body: some View {
         NavigationView {
@@ -66,26 +114,40 @@ struct CanteenDetail: View {
                         }
                     }
                     
-                    // Map Section
+                    Divider()
+                    //Filter Section
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("LOCATION")
+                        Text("FILTER")
                             .font(.caption)
                             .foregroundColor(.secondary)
-
-                        Map {
-                            Annotation("", coordinate: CLLocationCoordinate2D(latitude: canteen.latitude, longitude: canteen.longitude)) {
-                                Image(systemName: "mappin.circle.fill")
-                                    .font(.title)
-                                    .foregroundColor(.red)
+                        
+                        Filter(categories: viewModel.categories, selectedCategories: $viewModel.selectedCategories, maxPrice: $viewModel.maxPrice, isOpenNow: $viewModel.isOpenNow)
+                            .onChange(of: viewModel.selectedCategories) { _, _ in
+                                viewModel.updateFilteredTenant()
                             }
-                        }
-                        .frame(height: 150)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .allowsHitTesting(false)
+                            .onChange(of: viewModel.maxPrice) { _, _ in
+                                viewModel.updateFilteredTenant()
+                            }
+                            .onChange(of: viewModel.isOpenNow) { _, _ in
+                                viewModel.updateFilteredTenant()
+                            }
                     }
                     
                     // Tenants Section
-//                    showTenant(tenants: canteen.tenants.sorted(by: { $0.name < $1.name })) // Ensure tenants is not nil and sort them
+                    if canteen.tenants.isEmpty {
+                        VStack(alignment: .leading) {
+                            Text("Tenants")
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .padding(0)
+                            Divider()
+                            Text("Coming Soon")
+                                .font(.subheadline)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        }
+                    } else {
+                        showTenant(tenants: viewModel.filteredTenants)
+                    }
                 }
                 .padding()
             }
@@ -118,8 +180,8 @@ struct CanteenDetail: View {
     }
 }
 
-#Preview {
-    // You'll need to create a dummy Canteen object for the preview
-    let dummyCanteen = Canteen(name: "Green Eatery", latitude: -6.302180333605081, longitude: 106.65229958867403, image: "GreenEatery", desc: "Modern food court featuring diverse dishes", operationalTime: "Monday - Friday: 6 AM - 9 PM", amenities: ["Disabled Access", "Smoking Area", "Convenience Store"])
-    return CanteenDetail(canteen: dummyCanteen, dismissAction: {})
-}
+//#Preview {
+//    // You'll need to create a dummy Canteen object for the preview
+//    let dummyCanteen = Canteen(name: "Green Eatery", latitude: -6.302180333605081, longitude: 106.65229958867403, image: "GreenEatery", desc: "Modern food court featuring diverse dishes", operationalTime: "Monday - Friday: 6 AM - 9 PM", amenities: ["Disabled Access", "Smoking Area", "Convenience Store"])
+//    return CanteenDetail(canteen: dummyCanteen, dismissAction: {})
+//}

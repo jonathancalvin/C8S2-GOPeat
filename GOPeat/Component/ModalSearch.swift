@@ -91,7 +91,6 @@ struct ModalSearch: View {
     @FocusState var isTextFieldFocused: Bool
     private let maxHeight: PresentationDetent = .fraction(0.9)
     @ObservedObject var tenantSearchViewModel: TenantSearchViewModel
-//    var onTenantSelected: (Tenant) -> Void
     
     private func showTenant(tenants: [Tenant]) -> some View {
         VStack(alignment: .leading) {
@@ -100,12 +99,20 @@ struct ModalSearch: View {
                 .fontWeight(.bold)
                 .padding(0)
             Divider()
-            ForEach(tenants) {tenant in
-                TenantCard(tenant: tenant, selectedCategories: $tenantSearchViewModel.selectedCategories)
+            if !tenants.isEmpty {
+                ForEach(tenants) {tenant in
+                    TenantCard(tenant: tenant, selectedCategories: $tenantSearchViewModel.selectedCategories)
+                }
+            } else {
+                Text("Not Found")
+                    .font(.subheadline)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 10)
             }
         }
     }
-    
+
     private func showRecentSearch() -> some View {
         VStack(alignment: .leading) {
             Text("Your Search History")
