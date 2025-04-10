@@ -142,8 +142,10 @@ struct CanteenDetail: View {
                                 .padding(0)
                             Divider()
                             Text("Coming Soon")
-                                .font(.subheadline)
+                                .font(.subheadline.bold())
+                                .foregroundStyle(.secondary)
                                 .frame(maxWidth: .infinity, alignment: .center)
+                                .padding()
                         }
                     } else {
                         showTenant(tenants: viewModel.filteredTenants)
