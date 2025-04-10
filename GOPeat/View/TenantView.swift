@@ -201,6 +201,24 @@ struct FoodCard: View {
                 Text(food.desc)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 5) {
+                        ForEach(food.categories, id: \.self) { category in
+                            Text(category.rawValue)
+                                .padding(5)
+                                .font(.caption)
+                                .foregroundColor(.primary)
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(3)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .stroke(Color.gray.opacity(0.0), lineWidth: 1)
+                                    )
+                        }
+                    }
+                }
+                .padding(.top, 10)
             }
                 
             Spacer()
